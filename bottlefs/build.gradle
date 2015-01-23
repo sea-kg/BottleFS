@@ -13,6 +13,11 @@ dependencies {
   testCompile "junit:junit:4.+"
 }
 
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
 [compileJava,compileTestJava,compileGroovy,compileTestGroovy]*.options*.encoding = 'UTF-8'
 
 mainClassName = 'com.seakg.bottlefs.Main'
