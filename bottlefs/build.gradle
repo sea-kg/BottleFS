@@ -22,24 +22,24 @@ repositories {
 
 mainClassName = 'com.seakg.bottlefs.Main'
 
-task printVersion() {
-  def command = """git rev-list HEAD --count ."""
-  def version = command.execute(null, rootProject.getProjectDir()).in.text.trim().toInteger()
-  println("version: " + getProject().getName() + "-v"+ version)
+
+def getVersion() {
+    def command = """git rev-list HEAD --count ."""
+    def version = command.execute(null, rootProject.getProjectDir()).in.text.trim().toInteger()
+    return version
+}
+
+
+task printVersion() {  
+  println("version: " + getProject().getName() + "-v"+ getVersion())
 }
 
 task buildRelease(type:Zip) {
-  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + version + '.zip'
-  doFirst {
-    // from generateStartupScripts(getProject(), 'main')
-    from generateBuildInfo(getProject())
-  }
+  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
   // libs
   from (jar.outputs.files) { into 'libs' }
   from (configurations.compile) { into 'libs' }
-
-  from('src/scripts/') { into('scripts') }
-
+//  from('src/scripts/') { into('scripts') }
   from new File(getRootDir(), "../LICENSE")
   from new File(getRootDir(), "../README.md")
 }
