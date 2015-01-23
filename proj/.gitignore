@@ -1,0 +1,7 @@
+.project
+.gradle
+.classpath
+gradle-app.setting
+.settings
+bin
+build

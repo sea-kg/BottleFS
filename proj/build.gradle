@@ -1,0 +1,30 @@
+configurations.all {
+  resolutionStrategy {
+    force "org.codehaus.groovy:groovy:2.3.6"
+    force "org.codehaus.groovy:groovy-all:2.3.6"
+  }
+}
+
+subprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+def generateBuildInfo(proj) {
+  File tmpFolder = new File(proj.getProjectDir(), 'build/tmp');
+  tmpFolder.mkdirs();
+
+  File buildInfo = new File(tmpFolder.getAbsolutePath(), 'BUILDINFO')
+  buildInfo.withWriter { out ->
+    out.writeLine("Project Name: " + proj.getProject().getName())
+    out.writeLine("Version: " + version)
+    out.writeLine("Gradle Version: " + GradleVersion.current().getVersion())
+    out.writeLine("Java Runtime Environment version: " + System.getProperty("java.version"))
+    out.writeLine("JRE Architecture: " + System.getProperty("sun.arch.data.model")+" bit.")
+    out.writeLine("Java class format version number: " + System.getProperty("java.class.version"))
+    out.writeLine("User's account name: " + System.getProperty("user.name"))
+  }
+  return [ buildInfo ];
+}

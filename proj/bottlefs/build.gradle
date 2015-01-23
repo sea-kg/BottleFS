@@ -1,0 +1,40 @@
+group="com.seakg.bottlefs.core"
+apply plugin: 'groovy'
+apply plugin: 'application'
+
+dependencies {
+  compile localGroovy()
+  compile "org.codehaus.groovy:groovy-all:2.3.6"
+  compile 'net.sf.ehcache:ehcache:2.8.1'
+  compile 'commons-io:commons-io:1.4'
+  compile "org.apache.lucene:lucene-core:4.3.1"
+  compile "org.apache.lucene:lucene-analyzers-common:4.3.1"
+  compile "ch.qos.logback:logback-classic:1.1.2"
+  testCompile "junit:junit:4.+"
+}
+
+[compileJava,compileTestJava,compileGroovy,compileTestGroovy]*.options*.encoding = 'UTF-8'
+
+mainClassName = 'com.seakg.bottlefs.Main'
+
+task printVersion() {
+  def command = """git rev-list HEAD --count ."""
+  def version = command.execute(null, rootProject.getProjectDir()).in.text.trim().toInteger()
+  println("version: " + getProject().getName() + "-v"+ version)
+}
+
+task buildRelease(type:Zip) {
+  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + version + '.zip'
+  doFirst {
+    // from generateStartupScripts(getProject(), 'main')
+    from generateBuildInfo(getProject())
+  }
+  // libs
+  from (jar.outputs.files) { into 'libs' }
+  from (configurations.compile) { into 'libs' }
+
+  from('src/scripts/') { into('scripts') }
+
+  from new File(getRootDir(), "../LICENSE")
+  from new File(getRootDir(), "../README.md")
+}
