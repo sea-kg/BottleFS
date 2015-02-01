@@ -27,8 +27,8 @@ API. will be has methods:
 - upload-file-url
 - download-file
 - search-file
-- full-index
-- stop-index
+- start-reindexing
+- stop-reindexing
 - rabbit
 
 API. upload-file
@@ -58,19 +58,19 @@ output parameters:
 API. search-file
 input parameters:
 * query - type string
-* format - type string: json
+* format - type string: json, xml (default: json)
 output parameters:
 * list - list of fileid and filename
 * count - count of result search (not more than 10 or 50 or 100)
 
-API. full-index
+API. start-reindexing
 input parameters:
 * none
 output parameters:
 * status
 remark: only from localhost and only one process!!!
 
-API. stop-index
+API. stop-reindexing
 input parameters:
 * none
 output parameters:
@@ -98,22 +98,27 @@ fileid: вычисляется по md5 (или sha-1) от содержимог
 ищем его если не нашли то говорим тю-тю файла если нашли то отдаем bytearray
 фича: храним файлы запакованные (для лучшего сжатия) а при отдаче распаковываем сперва их а потом уже возвращаем
 
-- поиск по файлам
-проверяется токен
-получаем запрос ищем по lucene индексу и возвращаем список найденных файлов не более первых 10 или 50
-в том формате в котором нас попросили, также указывая сколько всего найдено файлов по запросу
-например(JSON):
+- search in files
+
+Example request:
+http://localhost:8086/bottle1/search-file?query=hello&page=2&format=json
+
+Example response:
 {
 	'count' : '3'
 	'result' : [
-		{ 'fileid' : '0842e519a5240a8ed129454eb4115494', 'filename' : 'ТЗ.doc' }
+		{
+			'fileid' : '0842e519a5240a8ed129454eb4115494', 'filename' : 'ТЗ.doc', 'metadata' : {
+				'someid': '123'
+			}
+		}
 		{ 'fileid' : 'a681902e65722c790df8bd891cdc0eab', 'filename' : 'ТЗ.doc' }
 		{ 'fileid' : '0b64b7b250a0a284c57fe39d9178cd60', 'filename' : 'ТЗ1.doc' }
 	]
 }
 
-- полное переиндексирвоание
-Очищаем индекс,
+- start reindexing
+clean index (remove all indexes files)
 на все запросы по поиску файлов и по из загрузке отвечаем что заняты переиндексированием.
 по выгрузке файлов тут все норм и спокойненько их отдаем.
 далее после очистки индекса начинаем рекурсивно проходить по заранее заготовленным xml
@@ -125,11 +130,13 @@ fileid: вычисляется по md5 (или sha-1) от содержимог
 также процедуру получения нового идентификатора лучше сделать переодически (5 минут например или 1 час)
 
 - rabbit
-кидается кубик и отдается случайный файл
+return random file.
 
-По настройке и запуску:
-это будет полностью веб сервер так что примерно как то так:
+Configuration and run:
+web server:
 java -jar /usr/bin/bottle-fs-0.1.jar /etc/bottle-fs/config.xml
+
+
 
 также для простоты можно создать deb-пакет и/или init.d скрипты (или что там в почете)
 
@@ -142,11 +149,34 @@ java -jar /usr/bin/bottle-fs-0.1.jar /etc/bottle-fs/config.xml
 
 возможный пример config.xml:
 <bottles>
-	<bottle name="127.0.0.1"> <!-- your trusted server -->
-		<option name="files.index.path">/var/tmp/bottlefs/</option>
-		<option name="files.path">/var/usr/share/bottlefs</option>
+	<port>8086</port>
+	<bottle name="bottle1">
+		<!-- trusted ip-servers -->
+		<option name="trusted.ip">127.0.0.1</option>
+		<option name="trusted.ip">89.76.1.245</option>
+
+		<!-- config for file-storage -->
+		<option name="files.index.path">/var/tmp/bottlefs-01-index</option>
+		<option name="files.path">/var/usr/share/bottlefs-01-files</option>
+
+		<!-- config for metadata -->
 		<option name="metadata.field">someid</option>
 		<option name="metadata.field">someid2</option>
 		<option name="metadata.field">someid3</option>
+	</bottle>
+	<bottle name="yourname2">
+		<!-- trusted ip-servers -->
+		<option name="trusted.ip">127.0.0.1</option>
+		<option name="trusted.ip">89.76.1.245</option>
+
+		<!-- config for file-storage -->
+		<option name="files.index.path">/var/usr/share/bottlefs-02-index</option>
+		<option name="files.path">/var/usr/share/bottlefs-02-files</option>
+
+		<!-- config for metadata -->
+		<option name="metadata.field">someid</option>
+		<option name="metadata.field">someid2</option>
+		<option name="metadata.field">someid3</option>
+		<option name="metadata.field">someid4</option>
 	</bottle>
 </bottles>
