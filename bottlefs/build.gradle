@@ -35,7 +35,7 @@ task printVersion() {
 }
 
 task buildRelease(type:Zip) {
-  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
+  // description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
   // libs
   from (jar.outputs.files) { into 'libs' }
   from (configurations.compile) { into 'libs' }
