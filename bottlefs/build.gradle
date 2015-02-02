@@ -1,12 +1,14 @@
 group="com.seakg.bottlefs.core"
 apply plugin: 'groovy'
 apply plugin: 'application'
+// apply plugin: 'gradle-one-jar'
 
 dependencies {
   compile localGroovy()
   compile "org.codehaus.groovy:groovy-all:2.3.6"
   compile 'net.sf.ehcache:ehcache:2.8.1'
   compile 'commons-io:commons-io:1.4'
+  compile 'org.json:json:20090211'
   compile "org.apache.lucene:lucene-core:4.3.1"
   compile "org.apache.lucene:lucene-analyzers-common:4.3.1"
   compile "ch.qos.logback:logback-classic:1.1.2"
@@ -15,13 +17,18 @@ dependencies {
 
 repositories {
   mavenLocal()
-  mavenCentral()
+  mavenCentral()  
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.seakg.bottlefs.Server'
+    }
 }
 
 [compileJava,compileTestJava,compileGroovy,compileTestGroovy]*.options*.encoding = 'UTF-8'
 
-mainClassName = 'com.seakg.bottlefs.WebServer'
-
+// mainClassName = 'com.seakg.bottlefs.WebServer'
 
 def getVersion() {
     def command = """git rev-list HEAD --count ."""
@@ -42,4 +49,15 @@ task buildRelease(type:Zip) {
 //  from('src/scripts/') { into('scripts') }
   from new File(getRootDir(), "../LICENSE")
   from new File(getRootDir(), "../README.md")
+}
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+  def version = getVersion();
+	manifest {
+    attributes 'Main-Class': 'com.seakg.bottlefs.Server'
+  }
+  baseName = project.name + '-all'
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  with jar
 }
