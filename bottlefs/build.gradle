@@ -20,7 +20,7 @@ repositories {
 
 [compileJava,compileTestJava,compileGroovy,compileTestGroovy]*.options*.encoding = 'UTF-8'
 
-mainClassName = 'com.seakg.bottlefs.Main'
+mainClassName = 'com.seakg.bottlefs.WebServer'
 
 
 def getVersion() {
@@ -35,7 +35,7 @@ task printVersion() {
 }
 
 task buildRelease(type:Zip) {
-  // description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
+  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
   // libs
   from (jar.outputs.files) { into 'libs' }
   from (configurations.compile) { into 'libs' }
