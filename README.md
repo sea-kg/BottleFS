@@ -23,39 +23,26 @@ Architech:
 HTTP-WEB-SERVER with api.
 
 API. will be has methods:
-- upload-file
-- upload-file-url
-- download-file
-- search-file
-- start-reindexing
-- stop-reindexing
-- rabbit
 
-API. upload-file
+http://localhost:8086/upload
 input parameters:
 * filename - type string
 * file - type bytearray
 * metadata - type bytearray (json), it's data for description this file
-output parameters:
-* fileid - type string
-* filetext - converted file to textfile (used tika)
-
-
-API. upload-file-url
-input parameters:
+or input parameters:
 * file-http - link to http file
 * metadata - type bytearray (json), it's data for description this file
 output parameters:
 * fileid - type string
 * filetext - converted file to textfile (used tika)
 
-API. download-file
+http://localhost:8086/download
 input parameters:
 * fileid - type string
 output parameters:
 * file - bytearray (use tika)
 
-API. search-file
+http://localhost:8086/search
 input parameters:
 * query - type string
 * format - type string: json, xml (default: json)
@@ -63,24 +50,22 @@ output parameters:
 * list - list of fileid and filename
 * count - count of result search (not more than 10 or 50 or 100)
 
-API. start-reindexing
+http://localhost:8086/start-reindexing
 input parameters:
 * none
 output parameters:
 * status
 remark: only from localhost and only one process!!!
 
-API. stop-reindexing
+http://localhost:8086/stop-reindexing
 input parameters:
 * none
 output parameters:
 * status
 
-API. rabbit
-input parameters:
-* none
-output parameters:
-* bytearray - random file
+http://localhost:8086/help
+retrun some information (version list of functions and another)
+
 
 How it must be work:
 
@@ -128,9 +113,6 @@ clean index (remove all indexes files)
 на что доверенный сервис должен ответить "ок вот тебе мой индентификатор и только на него ты отвечай всех остальный посылай нахуй"
 сервис запоминает его и при запросе поиска и загрузки файлов использует его для идентификации
 также процедуру получения нового идентификатора лучше сделать переодически (5 минут например или 1 час)
-
-- rabbit
-return random file.
 
 Configuration and run:
 web server:
