@@ -67,7 +67,7 @@ http://localhost:8086/help
 retrun some information (version list of functions and another)
 
 
-How it must be work:
+# How it must be work:
 
 - Загрузка файла будет происходить через POST запрос.
 проверяется токен
@@ -116,8 +116,7 @@ clean index (remove all indexes files)
 
 Configuration and run:
 web server:
-java -jar /usr/bin/bottle-fs-0.1.jar /etc/bottle-fs/config.xml
-
+java -jar /usr/bin/bottlefs-all.jar /etc/bottlefs/config.d/
 
 
 также для простоты можно создать deb-пакет и/или init.d скрипты (или что там в почете)
@@ -129,36 +128,18 @@ java -jar /usr/bin/bottle-fs-0.1.jar /etc/bottle-fs/config.xml
  - перенести файлы индекса или запустить полное переиндексирование
 и вуаля сервис уже на другой тачке
 
-возможный пример config.xml:
-<bottles>
-	<port>8086</port>
-	<bottle name="bottle1">
-		<!-- trusted ip-servers -->
-		<option name="trusted.ip">127.0.0.1</option>
-		<option name="trusted.ip">89.76.1.245</option>
+bottle2.properties:
+  # base 
+  name=bottle2
+  port=8086
 
-		<!-- config for file-storage -->
-		<option name="files.index.path">/var/tmp/bottlefs-01-index</option>
-		<option name="files.path">/var/usr/share/bottlefs-01-files</option>
+  # trusted ip-servers
+  trusted.ip=127.0.0.1
+  trusted.ip=89.76.1.245
 
-		<!-- config for metadata -->
-		<option name="metadata.field">someid</option>
-		<option name="metadata.field">someid2</option>
-		<option name="metadata.field">someid3</option>
-	</bottle>
-	<bottle name="yourname2">
-		<!-- trusted ip-servers -->
-		<option name="trusted.ip">127.0.0.1</option>
-		<option name="trusted.ip">89.76.1.245</option>
+  # config for file-storage and index
+  files.index.path=tmp/bottlefs-02-index
+  files.path=data/bottlefs-02-files
 
-		<!-- config for file-storage -->
-		<option name="files.index.path">/var/usr/share/bottlefs-02-index</option>
-		<option name="files.path">/var/usr/share/bottlefs-02-files</option>
-
-		<!-- config for metadata -->
-		<option name="metadata.field">someid</option>
-		<option name="metadata.field">someid2</option>
-		<option name="metadata.field">someid3</option>
-		<option name="metadata.field">someid4</option>
-	</bottle>
-</bottles>
+  # config for metadata
+  metadata.textfields=someid,someid2,someid3
