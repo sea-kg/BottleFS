@@ -12,7 +12,7 @@ import java.util.Properties;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
+import com.sun.net.httpserver.HttpContext;
 
 public class Server {
 
@@ -45,7 +45,11 @@ public class Server {
 
       // init handlers
       m_arrHandlers.add(new HandlerCreatorUpload());
-
+      m_arrHandlers.add(new HandlerCreatorDownload());
+      m_arrHandlers.add(new HandlerCreatorSearch());
+      m_arrHandlers.add(new HandlerCreatorStartReindexing());
+      m_arrHandlers.add(new HandlerCreatorStopReindexing());
+      m_arrHandlers.add(new HandlerCreatorRabbit());
 
       for (int i = 0; i < m_arrProps.size(); i++) {
         int port = Integer.parseInt(m_arrProps.get(i).getProperty("port"));
@@ -53,18 +57,10 @@ public class Server {
         // init server
         System.out.println("Start server on " + port);
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        // todo: generate all IBottleFSHandlers and add to createContext
-
         for (int h = 0; h < m_arrHandlers.size(); h++) {
-          server.createContext("/" + m_arrHandlers.get(h).name(), m_arrHandlers.get(h).createHttpHandler());
+          HttpContext context = server.createContext("/" + m_arrHandlers.get(h).name(), m_arrHandlers.get(h).createHttpHandler());
+          context.getFilters().add(new ParameterFilter());
         }
-
-        // server.createContext("/upload", new com.seakg.bottlefs.HandlerUpload());
-        server.createContext("/download", new com.seakg.bottlefs.HandlerDownload());
-        server.createContext("/search", new com.seakg.bottlefs.HandlerSearch());
-        server.createContext("/start-reindexing", new com.seakg.bottlefs.HandlerStartReindexing());
-        server.createContext("/stop-reindexing", new com.seakg.bottlefs.HandlerStopReindexing());
-        server.createContext("/rabbit", new com.seakg.bottlefs.HandlerRabbit());
         server.createContext("/help", new HandlerHelp());
         server.setExecutor(null); // creates a default executor
         server.start();
@@ -76,13 +72,7 @@ public class Server {
             JSONObject json = new JSONObject();
             String response = "HandlerHelp";
             try {
-              // TODO: fill from Array<IBottleFSHandlers>
-              json.put( "upload", "Mars" );
-              json.put( "download", "NY" );
-              json.put( "search", "" );
-              json.put( "start-reindexing", "" );
-              json.put( "stop-reindexing", "" );
-              json.put( "help", "" );
+              json.put( "help", "this" );
 
               for (int h = 0; h < m_arrHandlers.size(); h++) {
                 json.put( m_arrHandlers.get(h).name(), m_arrHandlers.get(h).info() );
