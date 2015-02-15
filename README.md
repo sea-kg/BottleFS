@@ -1,5 +1,10 @@
 # BottleFS
 Bottle File System
+Status: uncompleted!
+
+How to Build:
+$ cd bottlefs
+$ gradle build
 
 Description:
 Multithread web-server:
