@@ -5,7 +5,7 @@ apply plugin: 'application'
 
 dependencies {
   compile localGroovy()
-  compile "org.codehaus.groovy:groovy-all:2.3.6"
+//  compile "org.codehaus.groovy:groovy-all:2.3.6"
   compile 'net.sf.ehcache:ehcache:2.8.1'
   compile 'commons-io:commons-io:1.4'
   compile 'org.json:json:20090211'

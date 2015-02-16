@@ -33,7 +33,7 @@ public class HandlerCreatorStartReindexing implements IHandlerCreator {
      return "TODO";
    }
 
-   public HttpHandler createHttpHandler()
+   public HttpHandler createHttpHandler(Properties pProps)
    {
      return new HandlerStartReindexing();
    }

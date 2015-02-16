@@ -42,7 +42,7 @@ public class HandlerCreatorDownload implements IHandlerCreator {
      return "todo";
    }
 
-   public HttpHandler createHttpHandler()
+   public HttpHandler createHttpHandler(Properties pProps)
    {
      return new HandlerDownload();
    }

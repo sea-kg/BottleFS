@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.Properties;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -14,5 +15,5 @@ import com.sun.net.httpserver.HttpServer;
 public interface IHandlerCreator {
    public String name();
    public String info();
-   public HttpHandler createHttpHandler();
+   public HttpHandler createHttpHandler(Properties props);
 }

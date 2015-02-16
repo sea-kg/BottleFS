@@ -53,12 +53,16 @@ public class Server {
 
       for (int i = 0; i < m_arrProps.size(); i++) {
         int port = Integer.parseInt(m_arrProps.get(i).getProperty("port"));
+		// init directories
+		File dir_files = new File(m_arrProps.get(i).getProperty("files.directory"));
+		dir_files.mkdirs();
+		
 
         // init server
         System.out.println("Start server on " + port);
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         for (int h = 0; h < m_arrHandlers.size(); h++) {
-          HttpContext context = server.createContext("/" + m_arrHandlers.get(h).name(), m_arrHandlers.get(h).createHttpHandler());
+          HttpContext context = server.createContext("/" + m_arrHandlers.get(h).name(), m_arrHandlers.get(h).createHttpHandler(m_arrProps.get(i)));
           context.getFilters().add(new ParameterFilter());
         }
         server.createContext("/help", new HandlerHelp());
