@@ -77,7 +77,7 @@ files.index.directory=bottle1_index
 files.directory=bottle1_files
 
 # config for metadata
-metadata.textfields=someid,someid2,someid3
+metadata.textfields=name,number,author
 ''')
 		}
 

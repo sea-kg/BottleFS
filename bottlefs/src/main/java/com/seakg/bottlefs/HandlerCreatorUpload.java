@@ -8,10 +8,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.security.*;
-import java.util.Properties;
-import javax.xml.parsers.DocumentBuilder; 
-import javax.xml.parsers.DocumentBuilderFactory; 
-import javax.xml.parsers.ParserConfigurationException;
+import org.json.*;
+import javax.xml.parsers.*;
 import org.w3c.dom.*;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -58,7 +56,7 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 			return sResult;
 		}
 		
-		public void createXml(File file_xml, String url, String md5)
+		public void createXml(File file_xml, Map<String,String> mapData)
 		{
 			try {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 
@@ -69,20 +67,14 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 												   null); // doctype 
 				Element eDoc = doc.createElement("document");
 				doc.appendChild(eDoc);
-				Element eId = doc.createElement("field");
-				eId.setAttribute("name", "id");
-				eId.setTextContent(md5);
-				eDoc.appendChild(eId);
-				
-				Element eUrl = doc.createElement("field");
-				eUrl.setAttribute("name", "url");
-				eUrl.setTextContent(url);
-				eDoc.appendChild(eUrl);
-				
-				/*Element eUrl = doc.createElement("field");
-				eUrl.setAttribute("name", "url");
-				eUrl.setTextContent(url);
-				eDoc.appendChild(eUrl);*/
+
+				for (Map.Entry<String, String> entry : mapData.entrySet())
+				{
+					Element e = doc.createElement("field");
+					e.setAttribute("name", entry.getKey());
+					e.setTextContent(entry.getValue());
+					eDoc.appendChild(e);
+				}
 				
 				// write the content into xml file
 				TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -102,40 +94,64 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 		public void handle(HttpExchange t) throws IOException {
 			String response = "<pre>HandlerUpload\r\n";
 			response = response + t.getHttpContext().getPath() + "\r\n";
-			Map<String,Object> map = t.getHttpContext().getAttributes();
-
-			/*
-			for (Map.Entry<String, Object> entry : map.entrySet())
-			{
-				response = response + entry.getKey() + ": " + entry.getValue().toString() + "\r\n";				
-			}*/
-			
-			if (map.containsKey("file")) {
-				String url = map.get("file").toString();
-				String md5 = MD5(url);
-				File files_d = new File(m_pProps.getProperty("files.directory"));
-				response += "File: " + url + "\r\n";
-
-				try {
-					URL uriFile = new URL(url);
-					File file_d = new File(files_d, createPath(md5));
-					file_d.mkdirs();
-					File f = new File(file_d, md5);
-					FileUtils.copyURLToFile(uriFile, f);
-					
-					File file_xml = new File(file_d, md5 + ".xml");
-					createXml(file_xml, url, md5);
-
-				} catch (IOException e) {
-					response += "Error: " + e.getMessage() + "\r\n";
-					System.out.print("Error: " + e.getMessage() + "\r\n");
-					// return;
-				}
+			Map<String,Object> params = t.getHttpContext().getAttributes();
+			JSONObject json = new JSONObject();
+			Map<String,String> mapData = new HashMap<String, String>();
+			try {
+				/*for (int h = 0; h < m_arrHandlers.size(); h++) {
+					json.put( m_arrHandlers.get(h).name(), m_arrHandlers.get(h).info() );
+				}*/
 				
+				if (params.containsKey("file")) {
+					String url = params.get("file").toString();
+					String md5 = MD5(url);
+					mapData.put("id", md5);
+					mapData.put("url", url);
+					
+					File files_d = new File(m_pProps.getProperty("files.directory"));
+					// todo parse from property extended fields					
+					String[] fields = m_pProps.getProperty("metadata.textfields").split(",");
+					for (int i = 0; i < fields.length; i++) {
+						String sFieldName = fields[i];
+						if (params.containsKey(sFieldName))
+							mapData.put(sFieldName, params.get(sFieldName).toString());
+						else
+							mapData.put(sFieldName, "");
+					}
+
+					try {
+						URL uriFile = new URL(url);
+						File file_d = new File(files_d, createPath(md5));
+						file_d.mkdirs();
+						File f = new File(file_d, md5);
+						FileUtils.copyURLToFile(uriFile, f);
+
+						File file_xml = new File(file_d, md5 + ".xml");
+						createXml(file_xml, mapData);
+						json.put( "result", "ok" );
+						json.put("data", mapData);
+					} catch (IOException e) {
+						json.put( "error", e.getMessage() );
+						System.out.print("error: " + e.getMessage() + "\r\n");
+					}
+
+					JSONObject api = new JSONObject();
+					api.put( "method", "upload" );
+					JSONObject input = new JSONObject();
+					input.put("file", "(https|http|ftp)://host/*.*");
+
+					for (int i = 0; i < fields.length; i++) {
+						input.put(fields[i], "text");
+					}
+
+					api.put( "input:", input );
+					json.put("api", api);
+					response = json.toString(2);
+				}
+			} catch (JSONException e) {
+				// TODO
 			}
 
-			
-			response += "<form action='?' method='GET'><input type='text' name='file'/><input type='submit'/></form>";
 			t.sendResponseHeaders(200, response.length());
 			OutputStream os = t.getResponseBody();
 			os.write(response.getBytes());
