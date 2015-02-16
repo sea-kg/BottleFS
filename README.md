@@ -23,7 +23,6 @@ Using Libraries:
     http://apache-mirror.rbc.ru/pub/apache/lucene/java/4.10.3/
     http://lucene.apache.org/core/downloads.html
 
-
 Architech:
 HTTP-WEB-SERVER with api.
 

@@ -22,9 +22,9 @@ public class HandlerCreatorDownload implements IHandlerCreator {
            Map<String,Object> map = t.getHttpContext().getAttributes();
            for (Map.Entry<String, Object> entry : map.entrySet())
            {
-              response = response + entry.getKey() + ": " + entry.getValue().toString() + "\r\n";
+              // response = response + entry.getKey() + ": " + entry.getValue().toString() + "\r\n";
            }
-           response += "<form action='?' method='POST'><input type='text' name='file-link'/><input type='submit'/></form>";
+           response += "<form action='?' method='GET'><input type='text' name='file-link'/><input type='submit'/></form>";
            t.sendResponseHeaders(200, response.length());
            OutputStream os = t.getResponseBody();
            os.write(response.getBytes());

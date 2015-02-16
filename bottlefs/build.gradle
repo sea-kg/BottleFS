@@ -41,18 +41,79 @@ task printVersion() {
   println("version: " + getProject().getName() + "-v"+ getVersion())
 }
 
-task buildRelease(type:Zip) {
-  description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
-  // libs
-  from (jar.outputs.files) { into 'libs' }
-  from (configurations.compile) { into 'libs' }
-//  from('src/scripts/') { into('scripts') }
-  from new File(getRootDir(), "../LICENSE")
-  from new File(getRootDir(), "../README.md")
+task makezip(type:Zip) {
+	description 'Create release as zip-archive to build/distributions/' + getProject().getName() + '-' + getVersion() + '.zip'
+
+	doFirst {
+		File tmpFolder = new File(getProject().getProjectDir(), 'build/tmp');
+		tmpFolder.mkdirs();
+		
+		File batchCmd = new File(tmpFolder.getAbsolutePath(), 'run.bat')
+		batchCmd.withWriter { out ->
+			out.writeLine("@echo off")
+			out.writeLine("java -Dfile.encoding=UTF-8 -cp \"libs/*\" com.seakg.bottlefs.Server config.d %1 %2 %3 %4 %5")
+		}
+		File batchSh = new File(tmpFolder, 'run.sh')
+		batchSh.withWriter { out ->
+			out.writeLine("#!/bin/sh")
+			out.writeLine("java -Dfile.encoding=UTF-8 -cp 'libs/*' com.seakg.bottlefs.Server config.d \$@")
+		}
+		batchSh.setExecutable(true, false);
+		from batchCmd
+		from batchSh
+		
+		File bottle1 = new File(tmpFolder.getAbsolutePath(), 'bottle1.properties')
+		bottle1.withWriter { out ->
+			out.writeLine('''
+# base
+name=bottle1
+port=8086
+
+# trusted ip-servers
+trusted.ip=*
+
+# config for file-storage and index
+files.index.directory=bottle1_index
+files.directory=bottle1_files
+
+# config for metadata
+metadata.textfields=someid,someid2,someid3
+''')
+		}
+
+		from (bottle1) { into 'config.d' }
+			
+		File bottle2 = new File(tmpFolder.getAbsolutePath(), 'bottle2.properties')
+		bottle2.withWriter { out ->
+			out.writeLine('''
+# base
+name=bottle2
+port=8087
+
+# trusted ip-servers
+trusted.ip=127.0.0.1
+
+# config for file-storage and index
+files.index.directory=bottle2_index
+files.directory=bottle2_files
+
+# config for metadata
+metadata.textfields=someid,someid2,someid3
+''')
+		}
+		
+		from (bottle2) { into 'config.d' }
+	}  
+
+	// libs
+	from (jar.outputs.files) { into 'libs' }
+	from (configurations.compile) { into 'libs' }
+	from new File(getRootDir(), "../LICENSE")
+	from new File(getRootDir(), "../README.md")
 }
 
 //create a single Jar with all dependencies
-task fatJar(type: Jar) {
+task buildFatJar(type: Jar) {
   def version = getVersion();
 	manifest {
     attributes 'Main-Class': 'com.seakg.bottlefs.Server'
