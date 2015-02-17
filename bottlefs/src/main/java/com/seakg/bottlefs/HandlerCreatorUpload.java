@@ -8,6 +8,15 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import org.json.*;
+import org.apache.tika.*;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.*;
+import org.apache.tika.sax.*;
+import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.ContentHandler;
+import org.apache.tika.parser.pdf.PDFParser;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -69,7 +78,35 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 						file_d.mkdirs();
 						File f = new File(file_d, md5);
 						FileUtils.copyURLToFile(uriFile, f);
+						mapData.put("length", "" + f.length());
+						if (f.exists() && f.length() > 0) {
+							InputStream stream = new FileInputStream(f);
+							try {
+								Parser parser = new AutoDetectParser();
+								ContentHandler textHandler = new BodyContentHandler(Integer.MAX_VALUE);
+								Metadata metadata = new Metadata();
+								ParseContext context = new ParseContext();
 
+								parser.parse(stream,textHandler,metadata,context);
+								String title = metadata.get(Metadata.TITLE);
+								if (title != null)
+									mapData.put("title", title);
+								String text = textHandler.toString();
+								// System.out.println("Body: " + text);
+								
+								File file_text = new File(file_d, md5 + ".text");
+								FileUtils.writeStringToFile(file_text, text);
+								
+								/*Tika tika = new Tika();
+								mapData.put("content-type", tika.detect(stream).toString());*/
+							} catch (  Exception e) {
+								json.put( "error_tika", e.getMessage() );
+							} finally {
+								stream.close();
+							}
+							
+						}
+						
 						File file_xml = new File(file_d, md5 + ".xml");
 						m_engine.writeXml(file_xml, mapData);
 						json.put("data", mapData);
@@ -91,7 +128,8 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 
 			t.sendResponseHeaders(200, response.length());
 			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes());
+			InputStream is = new ByteArrayInputStream(response.getBytes("UTF-8"));
+			IOUtils.copy(is,os);
 			os.close();
 		}
 	}

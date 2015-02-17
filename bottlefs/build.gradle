@@ -9,6 +9,8 @@ dependencies {
   compile 'net.sf.ehcache:ehcache:2.8.1'
   compile 'commons-io:commons-io:1.4'
   compile 'org.json:json:20090211'
+  compile 'org.apache.tika:tika-core:+'
+  compile 'org.apache.tika:tika-parsers:+'
   compile "org.apache.lucene:lucene-core:4.3.1"
   compile "org.apache.lucene:lucene-analyzers-common:4.3.1"
   compile "ch.qos.logback:logback-classic:1.1.2"

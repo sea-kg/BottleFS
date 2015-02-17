@@ -33,42 +33,51 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 					String id = params.get("id").toString();
 					File files_d = new File(m_engine.getFilesDirectory());
 					File file_d = new File(files_d, m_engine.createPath(id));
+					String ext = "";
+					if (params.containsKey("other"))
+					{
+						String other = params.get("other").toString();
+						if (other.equals("text"))
+							ext = ".text";
+						else if (other.equals("xml"))
+							ext = ".xml";
+
+						id += ext;
+					}
+					
 					File file = new File(file_d, id);
 					if (file.exists() && file.length() > 0) { // todo check is dir
-						t.getResponseHeaders().set("Content-Type","application/octet-stream");
-						t.getResponseHeaders().set("Content-Transfer-Encoding", "binary");
-						t.getResponseHeaders().set("Content-Length", "" + file.length());
-						t.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + id + "\""); // todo extension and filename from xml
-						t.sendResponseHeaders(200, file.length());
 
-						System.out.println("point 0 " + id);
+						t.getResponseHeaders().set("Content-Length", "" + file.length());
+						if (ext.equals(".text")) {
+							t.getResponseHeaders().set("Content-Type","text/plain");
+							t.getResponseHeaders().set("Content-Disposition", "inline; filename=\"" + id + "\""); // todo filename from xml
+						} else if (ext.equals(".xml")) {
+							t.getResponseHeaders().set("Content-Type","application/xml; charset=utf-8");
+							t.getResponseHeaders().set("Content-Disposition", "inline; filename=\"" + id + "\""); // todo filename from xml
+						} else {
+							// todo content-type get from xml
+							t.getResponseHeaders().set("Content-Type","application/octet-stream");
+							t.getResponseHeaders().set("Content-Transfer-Encoding", "binary");
+							t.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"" + id + "\""); // todo filename from xml
+						}
+
+						t.sendResponseHeaders(200, file.length());
 						
 						OutputStream os = t.getResponseBody();
 						try {
 							InputStream is = null;
 							try {
-								System.out.println("point 1 " + file.getAbsolutePath());
 								FileInputStream fs = new FileInputStream(file);
-								System.out.println("point 1.1 ");
-								// is = new BufferedInputStream(fs);
-								System.out.println("point 2 ");
 								IOUtils.copy(fs,os);
-								System.out.println("point 3 ");
 							} finally {
-								System.out.println("point 4 ");
 								os.flush();
 								os.close();
 								is.close();
-								System.out.println("point 5 ");
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
-						}/* catch (FileNotFoundException ex) {
-							json.put("result", "fail" );
-							json.put("error", "Could not read file");
-						}*/
-						
-						System.out.println("return");
+						}
 						return;
 					} else {
 						json.put("result", "fail" );
@@ -83,6 +92,7 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 				api.put( "method", "download" );
 				JSONObject input = new JSONObject();
 				input.put("id", "md5");
+				input.put("other", "(text|xml)");
 				api.put( "input:", input );
 				json.put("api", api);
 				response = json.toString(2);				
