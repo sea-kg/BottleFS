@@ -50,7 +50,7 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 
 						t.getResponseHeaders().set("Content-Length", "" + file.length());
 						if (ext.equals(".text")) {
-							t.getResponseHeaders().set("Content-Type","text/plain");
+							t.getResponseHeaders().set("Content-Type","text/plain; charset=utf-8");
 							t.getResponseHeaders().set("Content-Disposition", "inline; filename=\"" + id + "\""); // todo filename from xml
 						} else if (ext.equals(".xml")) {
 							t.getResponseHeaders().set("Content-Type","application/xml; charset=utf-8");
