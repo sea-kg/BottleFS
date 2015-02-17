@@ -15,5 +15,5 @@ import com.sun.net.httpserver.HttpServer;
 public interface IHandlerCreator {
    public String name();
    public String info();
-   public HttpHandler createHttpHandler(Properties props);
+   public HttpHandler createHttpHandler(Engine engine);
 }

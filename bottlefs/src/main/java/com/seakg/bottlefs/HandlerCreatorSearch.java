@@ -13,28 +13,28 @@ import com.sun.net.httpserver.HttpServer;
 
 public class HandlerCreatorSearch implements IHandlerCreator {
 
-   static class HandlerSearch implements HttpHandler {
-       public void handle(HttpExchange t) throws IOException {
-           String response = "HandlerSearch";
-           t.sendResponseHeaders(200, response.length());
-           OutputStream os = t.getResponseBody();
-           os.write(response.getBytes());
-           os.close();
-       }
-   }
+	static class HandlerSearch implements HttpHandler {
+		public void handle(HttpExchange t) throws IOException {
+			String response = "HandlerSearch";
+			t.sendResponseHeaders(200, response.length());
+			OutputStream os = t.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
+		}
+	}
 
-   public String name()
-   {
-     return "search";
-   }
+	public String name()
+	{
+		return "search";
+	}
 
-   public String info()
-   {
-     return "todo";
-   }
+	public String info()
+	{
+		return "todo";
+	}
 
-   public HttpHandler createHttpHandler(Properties pProps)
-   {
-     return new HandlerSearch();
-   }
+	public HttpHandler createHttpHandler(Engine engine)
+	{
+		return new HandlerSearch();
+	}
 }

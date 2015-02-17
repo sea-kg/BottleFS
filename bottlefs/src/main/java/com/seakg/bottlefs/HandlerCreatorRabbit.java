@@ -33,7 +33,7 @@ public class HandlerCreatorRabbit implements IHandlerCreator {
      return "todo";
    }
 
-   public HttpHandler createHttpHandler(Properties pProps)
+   public HttpHandler createHttpHandler(Engine engine)
    {
      return new HandlerRabbit();
    }
