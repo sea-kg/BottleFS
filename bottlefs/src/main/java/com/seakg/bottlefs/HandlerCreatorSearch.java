@@ -44,7 +44,10 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 					input.put(sFieldName, "term* or term*");
 					
 					if (params.containsKey(sFieldName))
+					{
+						System.out.println(sFieldName + "=" + params.get(sFieldName).toString());
 						search_props.setProperty(sFieldName, params.get(sFieldName).toString());
+					}
 				}
 
 				 

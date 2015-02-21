@@ -346,9 +346,9 @@ public class Engine implements Runnable {
 					String key = (String) e.nextElement();
 					fields.add(key);
 					queries.add(search_props.getProperty(key));
-					if (key.equals("text"))
+					/*if (key.equals("text"))
 						flags.add(BooleanClause.Occur.SHOULD);
-					else
+					else*/
 						flags.add(BooleanClause.Occur.MUST);
 				}
 				Query query = MultiFieldQueryParser.parse(
