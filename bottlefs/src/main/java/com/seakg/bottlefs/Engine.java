@@ -45,6 +45,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 
 // import org.apache.lucene.queryparser.*;
 import org.apache.lucene.queryparser.classic.*;
@@ -199,9 +200,12 @@ public class Engine implements Runnable {
 							Directory directory = FSDirectory.open(index_d.toPath());
 							IndexWriterConfig config = new IndexWriterConfig(analyzer);
 							IndexWriter indexWriter = new IndexWriter(directory, config);
+							
+							// QueryParser parser = new QueryParser("id", analyzer);
+							// indexWriter.deleteDocuments(parser.parse(id));
+							indexWriter.deleteDocuments(new Term("id", id));
 
 							Document document = new Document();
-
 							Enumeration e = props.propertyNames();
 							while (e.hasMoreElements()) {
 								String key = (String) e.nextElement();
@@ -209,16 +213,18 @@ public class Engine implements Runnable {
 							}
 
 							File file_text = new File(file_d, id + ".text");
-							
 							String text = FileUtils.readFileToString(file_text, "UTF-8");
 							document.add(new Field("text", text, TextField.TYPE_NOT_STORED));
 							indexWriter.addDocument(document);
 							indexWriter.close();
 						} catch(IOException e) {
 							System.err.println("Error(1011): to_indexing, " + e.getMessage());
-							System.out.println("Error(1011): to_indexing, " + e.getMessage());
 							continue;
-						}
+						}; /* catch(ParseException e) {
+							System.err.println("Error(1023): parse, " + e.getMessage());
+							continue;
+						}*/
+						
 					}
 				}
 			} catch (InterruptedException e) {
@@ -320,8 +326,8 @@ public class Engine implements Runnable {
 			dir_index.mkdirs();
 		}
 		
-		public ArrayList<Properties> search(Properties search_props) {
-			ArrayList<Properties> result = new ArrayList<Properties>();
+		public String search(Properties search_props, ArrayList<Properties> result) {
+			String error = "";
 			try {
 				Analyzer analyzer = new StandardAnalyzer();
 				File index_d = new File(this.getIndexDirectory());
@@ -330,17 +336,31 @@ public class Engine implements Runnable {
 				// Now search the index:
 				DirectoryReader ireader = DirectoryReader.open(directory);
 				IndexSearcher isearcher = new IndexSearcher(ireader);
-				// Parse a simple query that searches for "text":
-				QueryParser parser = new QueryParser("text", analyzer);
-
 				// search_props
-				// todo
-				Query query = parser.parse(search_props.getProperty("text"));
+				ArrayList<String> queries = new ArrayList();
+				ArrayList<String> fields = new ArrayList();
+				ArrayList<BooleanClause.Occur> flags = new ArrayList();
 
+				Enumeration e = search_props.propertyNames();
+				while (e.hasMoreElements()) {
+					String key = (String) e.nextElement();
+					fields.add(key);
+					queries.add(search_props.getProperty(key));
+					if (key.equals("text"))
+						flags.add(BooleanClause.Occur.SHOULD);
+					else
+						flags.add(BooleanClause.Occur.MUST);
+				}
+				Query query = MultiFieldQueryParser.parse(
+					queries.toArray(new String[queries.size()]),
+					fields.toArray(new String[fields.size()]),
+					flags.toArray(new BooleanClause.Occur[flags.size()]),
+					analyzer
+				);
 				ScoreDoc[] hits = isearcher.search(query, null, 50).scoreDocs;
 				// assertEquals(1, hits.length);
 				System.out.println("hits.length: " + hits.length);
-				String[] fields = this.getMetadata_textfields();
+				String[] view_fields = this.getMetadata_textfields();
 				// Iterate through the results:
 				for (int i = 0; i < hits.length; i++) {
 					Document hitDoc = isearcher.doc(hits[i].doc);
@@ -349,8 +369,8 @@ public class Engine implements Runnable {
 					props.setProperty("url", hitDoc.get("url"));
 					props.setProperty("length", hitDoc.get("length"));
 
-					for (int fi = 0; fi < fields.length; fi++) {
-						String sFieldName = fields[fi];
+					for (int fi = 0; fi < view_fields.length; fi++) {
+						String sFieldName = view_fields[fi];
 						String value = hitDoc.get(sFieldName);
 						if (value != null)
 							props.setProperty(sFieldName, value);
@@ -360,13 +380,13 @@ public class Engine implements Runnable {
 				ireader.close();
 				directory.close();
 			} catch (IOException e) {
-				System.err.println("Error(1012): search, " + e.getMessage());
-				System.out.println("Error(1012): search, " + e.getMessage());
+				error = "Error(1012): search, " + e.getMessage();
+				System.err.println(error);
 			} catch (ParseException e) {
-				System.err.println("Error(1013): parse, " + e.getMessage());
-				System.out.println("Error(1013): parse, " + e.getMessage());
+				error = "Error(1013): parse, " + e.getMessage();
+				System.err.println(error);
 			}
-			return result;
+			return error;
 		}
 
 		public int getPort() {

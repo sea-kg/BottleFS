@@ -35,10 +35,8 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 				Properties search_props = new Properties();
 				if (params.containsKey("search")) {
 					search_props.setProperty("text", params.get("search").toString());
-				} else {
-					search_props.setProperty("text", "*");
 				}
-				
+
 				String[] fields = m_engine.getMetadata_textfields();
 				for (int i = 0; i < fields.length; i++) {
 					String sFieldName = fields[i];
@@ -49,9 +47,14 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 						search_props.setProperty(sFieldName, params.get(sFieldName).toString());
 				}
 
-				ArrayList<Properties> result = m_engine.search(search_props);
-				JSONObject data = new JSONObject();
-
+				 
+				ArrayList<Properties> result = new ArrayList<Properties>();
+				String error = m_engine.search(search_props, result);
+				if (error.length() != 0) {
+					json.put( "error", error );
+				}
+				
+				JSONArray data = new JSONArray();
 				for (int i = 0; i < result.size(); i++) {
 					JSONObject doc = new JSONObject();
 					Properties props = result.get(i);
@@ -60,7 +63,7 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 						String key = (String) e.nextElement();
 						doc.put(key, props.getProperty(key));
 					}
-					data.put( "doc", doc );
+					data.put(doc);
 				}
 				json.put( "data", data );
 
