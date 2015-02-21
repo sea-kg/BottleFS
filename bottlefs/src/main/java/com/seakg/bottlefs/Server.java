@@ -51,7 +51,8 @@ public class Server {
 		for (int i = 0; i < m_arrProps.size(); i++) {
 			Engine engine = new Engine(m_arrProps.get(i));
 			engine.initDirs();
-
+			engine.start();
+			
 			// init server
 			System.out.println("Start server on " + engine.getPort());
 			HttpServer server = HttpServer.create(new InetSocketAddress(engine.getPort()), 0);

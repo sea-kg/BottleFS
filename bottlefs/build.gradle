@@ -5,14 +5,15 @@ apply plugin: 'application'
 
 dependencies {
   compile localGroovy()
-//  compile "org.codehaus.groovy:groovy-all:2.3.6"
   compile 'net.sf.ehcache:ehcache:2.8.1'
   compile 'commons-io:commons-io:1.4'
   compile 'org.json:json:20090211'
-  compile 'org.apache.tika:tika-core:+'
-  compile 'org.apache.tika:tika-parsers:+'
-  compile "org.apache.lucene:lucene-core:4.3.1"
-  compile "org.apache.lucene:lucene-analyzers-common:4.3.1"
+  compile 'org.apache.tika:tika-core:1.7'
+  compile 'org.apache.tika:tika-parsers:1.7'
+  compile "org.apache.lucene:lucene-core:5.0.0"
+  compile "org.apache.lucene:lucene-analyzers-common:5.0.0"
+  compile "org.apache.lucene:lucene-codecs:5.0.0"
+  compile "org.apache.lucene:lucene-queryparser:5.0.0"
   compile "ch.qos.logback:logback-classic:1.1.2"
   testCompile "junit:junit:4.+"
 }
@@ -75,8 +76,8 @@ port=8086
 trusted.ip=*
 
 # config for file-storage and index
-files.index.directory=bottle1_index
-files.directory=bottle1_files
+index.directory=../bottle1_index
+files.directory=../bottle1_files
 
 # config for metadata
 metadata.textfields=name,number,author
@@ -96,11 +97,11 @@ port=8087
 trusted.ip=127.0.0.1
 
 # config for file-storage and index
-files.index.directory=bottle2_index
-files.directory=bottle2_files
+index.directory=../bottle2_index
+files.directory=../bottle2_files
 
 # config for metadata
-metadata.textfields=someid,someid2,someid3
+metadata.textfields=name,number,author
 ''')
 		}
 		
