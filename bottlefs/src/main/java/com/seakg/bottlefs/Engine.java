@@ -77,6 +77,8 @@ public class Engine implements Runnable {
 						if (m_requests.size() > 0) {
 							id = m_requests.pop();
 							processingId = id;
+						} else {
+							processingId = "";
 						}
 					}
 					
@@ -121,7 +123,11 @@ public class Engine implements Runnable {
 
 						// downloading file
 						try {
-							URL uriFile = new URL(props.getProperty("url"));
+							String uri = props.getProperty("url");
+							URL uriFile = new URL(uri);
+							System.out.println("uri: " + uri);
+							System.out.println("uri: " + URLEncoder.encode(uri, "UTF-8"));
+
 							FileUtils.copyURLToFile(uriFile, f);
 							props.setProperty("bottlefs_status", "to_parse");
 							props.setProperty("length", "" + f.length());

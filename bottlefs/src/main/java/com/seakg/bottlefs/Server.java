@@ -26,20 +26,20 @@ public class Server {
 
       File[] listOfFiles = configd.listFiles();
 
-      for (int i = 0; i < listOfFiles.length; i++) {
-        if (listOfFiles[i].isFile()) {
-          System.out.println("Reading config file " + listOfFiles[i].getName());
-          try {
-            InputStream is = new FileInputStream(listOfFiles[i]);
-            Properties props = new Properties();
-            props.load(is);
-            is.close();
-            m_arrProps.add(props);
-          } catch ( Exception e ) {
-            throw new Exception("Error: Could not reading properties");
-          }
-        }
-      }
+		for (int i = 0; i < listOfFiles.length; i++) {
+			if (listOfFiles[i].isFile()) {
+				System.out.println("Reading config file " + listOfFiles[i].getName());
+				try {
+					InputStream is = new FileInputStream(listOfFiles[i]);
+					Properties props = new Properties();
+					props.load(is);
+					is.close();
+					m_arrProps.add(props);
+				} catch ( Exception e ) {
+					throw new Exception("Error: Could not reading properties");
+				}
+			}
+		}
 
 		// init handlers
 		m_arrHandlers.add(new HandlerCreatorUpload());
