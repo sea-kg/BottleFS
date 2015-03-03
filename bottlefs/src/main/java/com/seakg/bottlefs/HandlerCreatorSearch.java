@@ -7,12 +7,15 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import org.json.*;
+import java.nio.charset.Charset;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
+import java.util.regex.Matcher;
+import org.apache.commons.lang3.StringUtils;
 
 public class HandlerCreatorSearch implements IHandlerCreator {
 
@@ -34,14 +37,36 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 				input.put("search", "term or term1*");
 				Properties search_props = new Properties();
 				if (params.containsKey("search")) {
-					search_props.setProperty("text", params.get("search").toString());
+					String p = params.get("search").toString().trim();
+					if (p.length() > 0) {
+						
+						String[] arr = p.split(" ");
+						ArrayList<String> list = new ArrayList<String>();
+						for(int i = 0; i < arr.length; i++) {
+							String sN = arr[i].trim();
+							if (sN.length() > 0) {
+								sN = sN.replaceAll("\\\\", Matcher.quoteReplacement(""));
+								sN = sN.replaceAll("\"", Matcher.quoteReplacement(""));
+								sN = sN.replaceAll("\\+", Matcher.quoteReplacement(""));
+								sN = sN.replaceAll("and", Matcher.quoteReplacement(""));
+								sN = sN.replaceAll("or", Matcher.quoteReplacement(""));
+								sN = sN + "*";
+								list.add(sN);
+								
+							}
+						}
+						String sN = StringUtils.join(list.toArray()," and ");
+						System.out.println(sN);
+						search_props.setProperty("text", sN);
+					} else
+						search_props.setProperty("text", "");
 				}
 
 				String[] fields = m_engine.getMetadata_textfields();
 				for (int i = 0; i < fields.length; i++) {
 					String sFieldName = fields[i];
-					
-					input.put(sFieldName, "term* or term*");
+
+					input.put(sFieldName, "term1* or +term2* or -term3*");
 					
 					if (params.containsKey(sFieldName))
 					{
@@ -50,7 +75,6 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 					}
 				}
 
-				 
 				ArrayList<Properties> result = new ArrayList<Properties>();
 				String error = m_engine.search(search_props, result);
 				if (error.length() != 0) {
@@ -59,12 +83,16 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 				
 				JSONArray data = new JSONArray();
 				for (int i = 0; i < result.size(); i++) {
+					// System.out.println("" + i);
 					JSONObject doc = new JSONObject();
 					Properties props = result.get(i);
 					Enumeration e = props.propertyNames();
 					while (e.hasMoreElements()) {
 						String key = (String) e.nextElement();
-						doc.put(key, props.getProperty(key));
+						String val = (String) props.getProperty(key);
+						// System.out.println("" + key);
+						// System.out.println("" + val);
+						doc.put(key, val);
 					}
 					data.put(doc);
 				}
@@ -72,15 +100,19 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 
 				api.put( "input", input );
 				json.put("api", api);
-				response = json.toString(2);				
+				response = json.toString(2);
 			} catch (JSONException e) {
 				// TODO
 				System.out.println("Error(1020): " + e.getMessage());
 			}
 
-			t.sendResponseHeaders(200, response.length());
+			// System.out.println(data.toString(2));
+			byte[] b = response.getBytes(Charset.forName("UTF-8"));
+			t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+			t.getResponseHeaders().set("Content-Length", "" + b.length);
+			t.sendResponseHeaders(200, b.length);
 			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes());
+			os.write(b);
 			os.close();
 		}
 	}

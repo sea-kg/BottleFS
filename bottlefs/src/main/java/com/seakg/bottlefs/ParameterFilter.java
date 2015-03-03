@@ -24,19 +24,17 @@ public class ParameterFilter extends Filter {
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
         try {
+			exchange.getHttpContext().getAttributes().clear();
 			parseGetParameters(exchange);
-			parsePostParameters(exchange);
-			System.out.println("chain.doFilter");
-        
+			parsePostParameters(exchange);       
 			chain.doFilter(exchange);
-		} catch(Throwable t) {
-			System.out.print("Problem with parse get request:\r\n" + t.getMessage() + "\r\n");
+		} catch(Throwable e) {
+			System.out.print("Problem with parse get request (2001):\r\n" + e.getMessage() + "\r\n");
 		}
-        System.out.println("doFilter end\r\n");
     }
 
 	private void parseGetParameters(HttpExchange exchange) throws UnsupportedEncodingException {
-		Map<String,Object> parameters = new HashMap();
+		Map<String,Object> parameters = new HashMap();	
 		URI requestedUri = exchange.getRequestURI();
 		String query = requestedUri.getRawQuery();
 		parseQuery(query, parameters);
@@ -44,17 +42,15 @@ public class ParameterFilter extends Filter {
 		{
 			try {
 				exchange.setAttribute(entry.getKey(), entry.getValue().toString());
-			} catch(Throwable t) {
-				System.out.print("problem with parse get request");
+			} catch(Throwable e) {
+				exchange.setAttribute(entry.getKey(), "");
+				System.out.print("Problem with parse get request (2000):\r\n" + e.getMessage() + "\r\n");
 			}
 		}
 	}
-	
-	
 
     private void parsePostParameters(HttpExchange exchange)
         throws IOException {
-
         /*if ("post".equalsIgnoreCase(exchange.getRequestMethod())) {
             @SuppressWarnings("unchecked")
             Map parameters =
@@ -71,22 +67,18 @@ public class ParameterFilter extends Filter {
 	private void parseQuery(String query, Map parameters) throws UnsupportedEncodingException {
 		if (query != null) {
 			String pairs[] = query.split("[&]");
-			System.out.println("point 1");
 			for (String pair : pairs) {
-				System.out.println("point 2 '" + pair + "'");
 				String param[] = pair.split("[=]");
-				String key = null;
-				String value = null;
+				String key = "";
+				String value = "";
 				if (param.length > 0) {
 					key = URLDecoder.decode(param[0],
 					System.getProperty("file.encoding"));
 				}
-				System.out.println("point 3 '" + pair + "'");
 				if (param.length > 1) {
 					value = URLDecoder.decode(param[1],
 					System.getProperty("file.encoding"));
 				}
-				System.out.println("point 4 '" + pair + "'");
 				if (parameters.containsKey(key)) {
 					Object obj = parameters.get(key);
 					if(obj instanceof List) {
@@ -101,7 +93,6 @@ public class ParameterFilter extends Filter {
 				} else {
 					parameters.put(key, value);
 				}
-				System.out.println("point 5 '" + pair + "'");
 			}
 		}
 	}

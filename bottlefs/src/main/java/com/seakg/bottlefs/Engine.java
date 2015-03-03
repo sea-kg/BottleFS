@@ -67,6 +67,17 @@ public class Engine implements Runnable {
 			m_pProps = pProps;
 		}
 		
+		public URL parseUrl(String s) throws Exception {
+			 URL u = new URL(s);
+			 return new URI(
+					u.getProtocol(), 
+					u.getAuthority(), 
+					u.getPath(),
+					u.getQuery(), 
+					u.getRef()).
+					toURL();
+		}
+		
 		public void run() {
 			System.out.println("Running " +  m_pProps.getProperty("name"));
 			
@@ -123,12 +134,9 @@ public class Engine implements Runnable {
 
 						// downloading file
 						try {
-							String uri = props.getProperty("url");
-							URL uriFile = new URL(uri);
-							System.out.println("uri: " + uri);
-							System.out.println("uri: " + URLEncoder.encode(uri, "UTF-8"));
-
-							FileUtils.copyURLToFile(uriFile, f);
+							String url = props.getProperty("url");
+							URL urlFile = parseUrl(url);
+							FileUtils.copyURLToFile(urlFile, f);
 							props.setProperty("bottlefs_status", "to_parse");
 							props.setProperty("length", "" + f.length());
 						} catch (Exception e) {
@@ -332,16 +340,32 @@ public class Engine implements Runnable {
 			dir_index.mkdirs();
 		}
 		
+		public Properties docToProps(Document hitDoc) {
+			Properties props = new Properties();
+			props.setProperty("id", hitDoc.get("id"));
+			props.setProperty("url", hitDoc.get("url"));
+			props.setProperty("length", hitDoc.get("length"));
+			
+			String[] view_fields = this.getMetadata_textfields();
+			for (int fi = 0; fi < view_fields.length; fi++) {
+				String sFieldName = view_fields[fi];
+				String value = hitDoc.get(sFieldName);
+				if (value != null)
+					props.setProperty(sFieldName, value);
+			}
+			return props;
+		}
+		
 		public String search(Properties search_props, ArrayList<Properties> result) {
 			String error = "";
 			try {
 				Analyzer analyzer = new StandardAnalyzer();
 				File index_d = new File(this.getIndexDirectory());
 				Directory directory = FSDirectory.open(index_d.toPath());
-								
+
 				// Now search the index:
 				DirectoryReader ireader = DirectoryReader.open(directory);
-				IndexSearcher isearcher = new IndexSearcher(ireader);
+
 				// search_props
 				ArrayList<String> queries = new ArrayList();
 				ArrayList<String> fields = new ArrayList();
@@ -349,39 +373,45 @@ public class Engine implements Runnable {
 
 				Enumeration e = search_props.propertyNames();
 				while (e.hasMoreElements()) {
-					String key = (String) e.nextElement();
-					fields.add(key);
-					queries.add(search_props.getProperty(key));
-					/*if (key.equals("text"))
-						flags.add(BooleanClause.Occur.SHOULD);
-					else*/
-						flags.add(BooleanClause.Occur.MUST);
-				}
-				Query query = MultiFieldQueryParser.parse(
-					queries.toArray(new String[queries.size()]),
-					fields.toArray(new String[fields.size()]),
-					flags.toArray(new BooleanClause.Occur[flags.size()]),
-					analyzer
-				);
-				ScoreDoc[] hits = isearcher.search(query, null, 50).scoreDocs;
-				// assertEquals(1, hits.length);
-				System.out.println("hits.length: " + hits.length);
-				String[] view_fields = this.getMetadata_textfields();
-				// Iterate through the results:
-				for (int i = 0; i < hits.length; i++) {
-					Document hitDoc = isearcher.doc(hits[i].doc);
-					Properties props = new Properties();
-					props.setProperty("id", hitDoc.get("id"));
-					props.setProperty("url", hitDoc.get("url"));
-					props.setProperty("length", hitDoc.get("length"));
 
-					for (int fi = 0; fi < view_fields.length; fi++) {
-						String sFieldName = view_fields[fi];
-						String value = hitDoc.get(sFieldName);
-						if (value != null)
-							props.setProperty(sFieldName, value);
+					String key = (String) e.nextElement();
+					String query = (String) search_props.getProperty(key);
+					if (query.trim().length() != 0) {
+						fields.add(key);
+						queries.add(search_props.getProperty(key));
+						/*if (key.equals("text"))
+							flags.add(BooleanClause.Occur.SHOULD);
+						else*/
+							flags.add(BooleanClause.Occur.MUST);
 					}
-					result.add(props);
+				}
+				
+				if (fields.size() != 0) {
+					IndexSearcher isearcher = new IndexSearcher(ireader);	
+					Query query = MultiFieldQueryParser.parse(
+						queries.toArray(new String[queries.size()]),
+						fields.toArray(new String[fields.size()]),
+						flags.toArray(new BooleanClause.Occur[flags.size()]),
+						analyzer
+					);
+
+					ScoreDoc[] hits = isearcher.search(query, null, 50).scoreDocs;
+					// Iterate through the results:
+					for (int i = 0; i < hits.length; i++) {
+						Document hitDoc = isearcher.doc(hits[i].doc);
+						result.add(docToProps(hitDoc));
+					}
+				} else { // if query is empty
+					// IndexReader reader = new IndexReader();
+					String[] view_fields = this.getMetadata_textfields();
+					for (int i=0; i<ireader.maxDoc(); i++) {
+						/*if (ireader.isDeleted(i))
+							continue;*/
+						Document hitDoc = ireader.document(i);
+						result.add(docToProps(hitDoc));
+						if (i >= 50) 
+							break;
+					}			
 				}
 				ireader.close();
 				directory.close();

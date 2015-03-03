@@ -54,7 +54,7 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 
 					File f_metadata = new File(file_d, id + ".metadata");
 					if (f_metadata.exists()) {
-						System.out.println("f_metadata: exists");
+						// System.out.println("f_metadata: exists");
 						Properties props = new Properties();
 						try {
 							FileInputStream is = new FileInputStream(f_metadata);
@@ -63,11 +63,11 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 						} catch(IOException e) {
 							System.out.println("Error(1010): read form properties, " + e.getMessage());
 						}
-						System.out.println("f_metadata: exists2");
+						// System.out.println("f_metadata: exists2");
 						if (props.containsKey("tika_Content-Type")) {
 							contentType = props.getProperty("tika_Content-Type");
 						}
-						System.out.println("f_metadata: exists3");
+						// System.out.println("f_metadata: exists3");
 						if (props.containsKey("url")) {
 							String filename = URLEncoder.encode(props.getProperty("url"), "UTF-8");
 							disposition = "attachment; filename=\"" + filename + "\"";
@@ -94,11 +94,10 @@ public class HandlerCreatorDownload implements IHandlerCreator {
 						contentTransferEncodifng = "binary";
 					}
 					
-					if (file.exists() && file.length() > 0) { // todo check is dir
+					if (file != null && file.exists() && file.length() > 0) { // todo check is dir
 
 						t.getResponseHeaders().set("Content-Length", "" + file.length());
-						
-						t.getResponseHeaders().set("Content-Type",contentType);
+						t.getResponseHeaders().set("Content-Type", contentType);
 						t.getResponseHeaders().set("Content-Disposition", disposition); // todo filename from xml
 						
 						if (!contentTransferEncodifng.equals(""))

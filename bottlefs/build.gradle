@@ -7,6 +7,7 @@ dependencies {
   compile localGroovy()
   compile 'net.sf.ehcache:ehcache:2.8.1'
   compile 'commons-io:commons-io:1.4'
+  compile 'org.apache.commons:commons-lang3:+'
   compile 'org.json:json:20090211'
   compile 'org.apache.tika:tika-core:1.7'
   compile 'org.apache.tika:tika-parsers:1.7'
