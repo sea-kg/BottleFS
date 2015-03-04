@@ -1,0 +1,191 @@
+<html>
+	<head>
+		<title>Example bottlefs</title>
+		<script>
+			function showmenu(id) {
+				document.getElementById("panel_upload").style.display = "none";
+				document.getElementById("panel_search").style.display = "none";
+				document.getElementById("panel_index").style.display = "none";
+				document.getElementById(id).style.display = "block";
+			};
+			
+			function ajax(url, callbackf) {
+				if (window.XMLHttpRequest) {
+					// code for IE7+, Firefox, Chrome, Opera, Safari
+					xmlhttp=new XMLHttpRequest();
+				};  
+				xmlhttp.onreadystatechange=function() {
+					// document.getElementById("upload_results").innerHTML += "<br/>(readyState: " + xmlhttp.readyState + ",  status:" + xmlhttp.status + ")";
+					if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+						try {
+							var obj = JSON.parse(xmlhttp.responseText);
+							callbackf(obj);
+						} catch(e) {
+							alert("problem with parse json: " + xmlhttp.responseText);
+						}
+					} else if (xmlhttp.readyState==4 && (xmlhttp.status==0 || xmlhttp.status==404)) {
+						alert("Page are not found 404, url=" + url);
+					}
+				}
+				xmlhttp.open("GET", url ,true);
+				xmlhttp.send();
+			};
+
+			var upload_params = new Array();
+			function init_upload() {
+				var host = document.getElementById("host").value;
+				var url = host + "upload";
+				document.getElementById("upload_params").innerHTML = "";
+				ajax(url, function(obj) {
+
+					// document.getElementById("upload_results").innerHTML += JSON.stringify(obj);
+					for(var key in obj.api.input) {
+						if (key != "file") {
+							document.getElementById("upload_params").innerHTML += key + ': <input id="upload_' + key + '" type="text" value=""/><br>';
+							upload_params.push(key);
+						}
+					}
+				});
+			}
+
+			function bottlefs_upload() {
+				var host = document.getElementById("host").value;
+				var file = document.getElementById("upload_url").value;
+				var url = host + "upload?file=" + encodeURIComponent(file);
+				
+				for (var i = 0; i < upload_params.length; i++) {
+					var val = document.getElementById("upload_" + upload_params[i]).value;
+					if (val.trim().length > 0)
+						url += "&" + upload_params[i] + "=" + encodeURIComponent(val);
+				}
+				
+				
+				document.getElementById("upload_results").innerHTML = "";
+				ajax(url, function(obj) {
+
+					if (obj.result && obj.result == "ok") {
+						document.getElementById("upload_results").innerHTML += "<br>File uploaded: " + obj.data.id + "<br>";
+						document.getElementById("upload_results").innerHTML += '<a href="' + host + 'download?id=' + obj.data.id + '&format=metadata" target="_ablank">Metadata</a> | ';
+						document.getElementById("upload_results").innerHTML += '<a href="' + host + 'download?id=' + obj.data.id + '&format=binary" target="_ablank">Binary</a> | ';
+						document.getElementById("upload_results").innerHTML += '<a href="' + host + 'download?id=' + obj.data.id + '&format=text" target="_ablank">Text</a>';
+					} else {
+						document.getElementById("upload_results").innerHTML += "error";
+					}
+				});
+			}
+
+			var search_params = new Array();
+			
+			function fill_search_result(data) {
+				var el = document.getElementById("search_results");
+				el.innerHTML = "";
+				var host = document.getElementById("host").value;
+				for(var key in data) {
+					var o = data[key];
+					el.innerHTML += '<a href="' + o.url + '" target="_ablank">' + o.url + '</a><br>';
+					var content = "<font size=2>";
+					for(var k in search_params) {
+						var opt = search_params[k];
+						if (opt != "search") {
+							var val = o[opt];
+							content  += opt + ": " + val + " | ";
+						}
+					}
+					content += '<a href="' + host + 'download?id=' + o.id + '&format=metadata" target="_ablank">metadata</a> | ';
+					content += '<a href="' + host + 'download?id=' + o.id + '&format=binary" target="_ablank">binary</a> | ';
+					content += '<a href="' + host + 'download?id=' + o.id + '&format=text" target="_ablank">text</a> ';
+					content += '</font>';
+
+					el.innerHTML += content;
+					el.innerHTML += '<br><br>';
+				}
+			}
+
+			function init_search() {
+				var host = document.getElementById("host").value;
+				var url = host + "search";
+				document.getElementById("search_params").innerHTML = "";
+				ajax(url, function(obj) {
+					// document.getElementById("upload_results").innerHTML += JSON.stringify(obj);
+					for(var key in obj.api.input) {
+						if (key != "search") {
+							document.getElementById("search_params").innerHTML += key + ': <input id="search_' + key + '" type="text" value="" onkeydown="if (event.keyCode == 13) bottlefs_search();"/><br>';
+							search_params.push(key);
+						}
+					}
+					bottlefs_search();
+				});
+			}
+			
+			function bottlefs_search() {
+				var host = document.getElementById("host").value;
+				var text = document.getElementById("search_text").value;
+				var url = host + "search?search=" + encodeURIComponent(text);
+				
+				for (var i = 0; i < search_params.length; i++) {
+					var val = document.getElementById("search_" + search_params[i]).value;
+					if (val.trim().length > 0)
+						url += "&" + search_params[i] + "=" + encodeURIComponent(val);
+				}
+				
+				
+				document.getElementById("search_results").innerHTML = url; // "";
+				ajax(url, function(obj) {
+
+					// if (obj.result && obj.result == "ok") {
+						fill_search_result(obj.data);
+					/*} else {
+						document.getElementById("search_results").innerHTML += "error";
+					}*/
+				});
+			}
+			
+			function init_index() {
+			}
+			
+		</script>
+		<style>
+		  .panel {
+			  display: none;
+		  }
+		</style>
+	</head>
+	<body>
+		<h1>BottleFS</h1>
+		Host: <input id="host" type="text" value="http://localhost:8087/"/><br>
+		<a href="javascript:void();" onclick="showmenu('panel_upload'); init_upload();">Upload</a> | 
+		<a href="javascript:void();" onclick="showmenu('panel_search'); init_search();">Search</a> |
+		<a href="javascript:void();" onclick="showmenu('panel_index'); init_index();">Index</a>
+		<br>
+		<hr>
+		Panel:<br>
+
+		<!-- Upload -->
+		<div id="panel_upload" class="panel">
+			URL: <input id="upload_url" size=100 type="text" value="http://google.com"/>
+			<div id="upload_params">
+				
+			</div>
+			<a href="javascript:void();" onclick="bottlefs_upload();">Add to bottlefs</a>
+			<hr>
+			<div id="upload_results">
+			</div>
+		</div>
+
+		<!-- Search -->
+		<div id="panel_search" class="panel">
+			Search: <input id="search_text" type="text" value="" onkeydown="if (event.keyCode == 13) bottlefs_search();"/>
+			<div id="search_params">
+			</div>
+			<a href="javascript:void();" onclick="bottlefs_search();">Search</a>
+			<hr>
+			<div id="search_results">
+			</div>
+		</div>
+
+		<!-- Index -->
+		<div id="panel_index" class="panel">
+			index
+		</div>
+	</body>
+</html>

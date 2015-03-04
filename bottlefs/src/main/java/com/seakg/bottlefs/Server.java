@@ -45,8 +45,7 @@ public class Server {
 		m_arrHandlers.add(new HandlerCreatorUpload());
 		m_arrHandlers.add(new HandlerCreatorDownload());
 		m_arrHandlers.add(new HandlerCreatorSearch());
-		m_arrHandlers.add(new HandlerCreatorStartReindexing());
-		m_arrHandlers.add(new HandlerCreatorStopReindexing());
+		m_arrHandlers.add(new HandlerCreatorIndex());
 
 		for (int i = 0; i < m_arrProps.size(); i++) {
 			Engine engine = new Engine(m_arrProps.get(i));

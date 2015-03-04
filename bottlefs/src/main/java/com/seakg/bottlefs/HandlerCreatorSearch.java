@@ -1,5 +1,6 @@
 package com.seakg.bottlefs;
 
+import org.apache.commons.io.*;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import java.nio.charset.Charset;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
@@ -34,7 +36,7 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 				JSONObject api = new JSONObject();
 				api.put( "method", "search" );
 				JSONObject input = new JSONObject();
-				input.put("search", "term or term1*");
+				input.put("search", "term term1 term2");
 				Properties search_props = new Properties();
 				if (params.containsKey("search")) {
 					String p = params.get("search").toString().trim();
@@ -44,6 +46,7 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 						ArrayList<String> list = new ArrayList<String>();
 						for(int i = 0; i < arr.length; i++) {
 							String sN = arr[i].trim();
+							sN = sN.replaceAll("\\*", Matcher.quoteReplacement(""));
 							if (sN.length() > 0) {
 								sN = sN.replaceAll("\\\\", Matcher.quoteReplacement(""));
 								sN = sN.replaceAll("\"", Matcher.quoteReplacement(""));
@@ -52,7 +55,6 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 								sN = sN.replaceAll("or", Matcher.quoteReplacement(""));
 								sN = sN + "*";
 								list.add(sN);
-								
 							}
 						}
 						String sN = StringUtils.join(list.toArray()," and ");
@@ -108,8 +110,11 @@ public class HandlerCreatorSearch implements IHandlerCreator {
 
 			// System.out.println(data.toString(2));
 			byte[] b = response.getBytes(Charset.forName("UTF-8"));
+			t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
 			t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
 			t.getResponseHeaders().set("Content-Length", "" + b.length);
+			t.getResponseHeaders().set("Status", "200");
+			
 			t.sendResponseHeaders(200, b.length);
 			OutputStream os = t.getResponseBody();
 			os.write(b);

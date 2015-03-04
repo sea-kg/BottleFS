@@ -8,10 +8,16 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import org.json.*;
+import java.nio.charset.Charset;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.Headers;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class HandlerCreatorUpload implements IHandlerCreator {
 
@@ -24,6 +30,7 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 
 		public void handle(HttpExchange t) throws IOException {
 			String response = "";
+			t.getResponseHeaders().clear();
 			Map<String,Object> params = t.getHttpContext().getAttributes();
 			JSONObject json = new JSONObject();
 			Map<String,String> mapData = new HashMap<String, String>();
@@ -66,8 +73,16 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 			} catch (JSONException e) {
 				// TODO
 			}
-
-			t.sendResponseHeaders(200, response.length());
+			
+			
+			
+			byte[] b = response.getBytes(Charset.forName("UTF-8"));
+			t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+			t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+			t.getResponseHeaders().set("Content-Length", "" + b.length);
+			t.getResponseHeaders().set("Status", "200");
+			// t.setStatus(200);
+			t.sendResponseHeaders(200, b.length);
 			OutputStream os = t.getResponseBody();
 			InputStream is = new ByteArrayInputStream(response.getBytes("UTF-8"));
 			IOUtils.copy(is,os);
