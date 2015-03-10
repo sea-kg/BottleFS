@@ -41,7 +41,7 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 				JSONObject api = new JSONObject();
 				api.put( "method", "upload" );
 				JSONObject input = new JSONObject();
-				input.put("file", "(https|http|ftp)://host/*.*");
+				input.put("url", "(https|http|ftp)://host/*.*");
 
 				String[] fields = m_engine.getMetadata_textfields();
 				for (int i = 0; i < fields.length; i++) {
@@ -57,8 +57,8 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 				api.put( "input", input );
 				json.put("api", api);
 				
-				if (params.containsKey("file")) {
-					String url = params.get("file").toString();
+				if (params.containsKey("url")) {
+					String url = params.get("url").toString();
 					props.setProperty("url", url);
 					mapData = m_engine.toIndex(props);
 					json.put("data", mapData);
@@ -66,15 +66,13 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 
 				} else {
 					json.put("result", "fail" );
-					json.put("error", "Not found parameter 'file'");
+					json.put("error", "Not found parameter 'url'");
 				}
 				response = json.toString(2);				
 				
 			} catch (JSONException e) {
 				// TODO
 			}
-			
-			
 			
 			byte[] b = response.getBytes(Charset.forName("UTF-8"));
 			t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");

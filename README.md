@@ -8,10 +8,10 @@ $ gradle build
 
 Description:
 Multithread web-server:
-  - upload files to server
-  - indexing files
+  - upload files to server by url
+  - download files from server by id
+  - remove files from server by id
   - search by content
-  - download files from server
 
 Language:
 java-1.7 or java-1.8
@@ -24,7 +24,7 @@ Using Libraries:
     http://lucene.apache.org/core/downloads.html
 
 Architech:
-HTTP-WEB-SERVER with api.
+HTTP-WEB-SERVER (api)
 
 API. will be has methods:
 

@@ -40,7 +40,7 @@
 
 					// document.getElementById("upload_results").innerHTML += JSON.stringify(obj);
 					for(var key in obj.api.input) {
-						if (key != "file") {
+						if (key != "url") {
 							document.getElementById("upload_params").innerHTML += key + ': <input id="upload_' + key + '" type="text" value=""/><br>';
 							upload_params.push(key);
 						}
@@ -51,7 +51,7 @@
 			function bottlefs_upload() {
 				var host = document.getElementById("host").value;
 				var file = document.getElementById("upload_url").value;
-				var url = host + "upload?file=" + encodeURIComponent(file);
+				var url = host + "upload?url=" + encodeURIComponent(file);
 				
 				for (var i = 0; i < upload_params.length; i++) {
 					var val = document.getElementById("upload_" + upload_params[i]).value;
@@ -60,7 +60,7 @@
 				}
 				
 				
-				document.getElementById("upload_results").innerHTML = "";
+				document.getElementById("upload_results").innerHTML = "url: " + url;
 				ajax(url, function(obj) {
 
 					if (obj.result && obj.result == "ok") {
@@ -82,8 +82,8 @@
 				var host = document.getElementById("host").value;
 				for(var key in data) {
 					var o = data[key];
-					el.innerHTML += '<a href="' + o.url + '" target="_ablank">' + o.url + '</a><br>';
-					var content = "<font size=2>";
+					var content = '<div><a href="' + o.url + '" target="_ablank">' + o.url + '</a><br>';
+					content += "<font size=2>";
 					for(var k in search_params) {
 						var opt = search_params[k];
 						if (opt != "search") {
@@ -91,13 +91,12 @@
 							content  += opt + ": " + val + " | ";
 						}
 					}
-					content += '<a href="' + host + 'download?id=' + o.id + '&format=metadata" target="_ablank">metadata</a> | ';
+					content += '<div class="link"><a href="' + host + 'download?id=' + o.id + '&format=metadata" target="_ablank">metadata</a> | </div>';
 					content += '<a href="' + host + 'download?id=' + o.id + '&format=binary" target="_ablank">binary</a> | ';
 					content += '<a href="' + host + 'download?id=' + o.id + '&format=text" target="_ablank">text</a> ';
-					content += '</font>';
+					content += '</font></div>';
 
 					el.innerHTML += content;
-					el.innerHTML += '<br><br>';
 				}
 			}
 
@@ -148,6 +147,11 @@
 		  .panel {
 			  display: none;
 		  }
+		  
+		  .link {
+			  display: inline-block;
+		  }
+		  
 		</style>
 	</head>
 	<body>

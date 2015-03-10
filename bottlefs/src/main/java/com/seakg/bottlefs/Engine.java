@@ -428,4 +428,8 @@ public class Engine implements Runnable {
 		public int getPort() {
 			return Integer.parseInt(m_pProps.getProperty("port"));
 		}
+		
+		public void sendResponse() {
+			
+		}
 }
