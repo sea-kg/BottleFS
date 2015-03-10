@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [ -f "/etc/init.d/bottlefs" ]; then
+	/etc/init.d/bottlefs stop
+fi;

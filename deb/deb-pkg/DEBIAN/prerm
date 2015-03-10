@@ -1,0 +1,4 @@
+#!/bin/bash
+
+/etc/init.d/bottlefs stop
+update-rc.d -f bottlefs remove

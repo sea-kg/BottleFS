@@ -1,4 +1,11 @@
 #!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          bottlefs
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
 DAEMON_PATH="/usr/share/bottlefs"
 NAME=bottlefs
 DESC="BottleFS"

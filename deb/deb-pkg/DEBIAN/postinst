@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo update-rc.d bottlefs defaults
+/etc/init.d/bottlefs start

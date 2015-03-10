@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sudo dpkg -i bottlefs_0.1.27_all.deb
+sudo dpkg -i *.deb
 # sudo dpkg -r bottlefs

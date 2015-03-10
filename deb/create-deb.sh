@@ -97,8 +97,7 @@ if [ ! -d "DEBIAN" ]; then
 fi
 
 # config files
-# echo "/etc/bottlefs/init.conf" > DEBIAN/conffiles
-# echo "/etc/bottlefs/actions.conf" >> DEBIAN/conffiles
+echo "/etc/bottlefs/bottles/attachments.properties" >> DEBIAN/conffiles
 
 # control
 # todo section ???
@@ -127,21 +126,24 @@ done
 
 find usr -type f | while read f; do  chmod 644 "$f"; done
 find etc -type f | while read f; do  chmod 644 "$f"; done
+find var -type f | while read f; do  chmod 644 "$f"; done
 find DEBIAN -type f | while read f; do  chmod 644 "$f"; done
 
 find usr -type d | while read d; do  chmod 755 "$d"; done
 find etc -type d | while read d; do  chmod 755 "$d"; done
+find var -type d | while read d; do  chmod 755 "$d"; done
 find DEBIAN -type d | while read d; do  chmod 755 "$d"; done
-
-# chmod 755 usr/bin/attackdefence
-# chmod +x usr/share/bottlefs/api/framework/yiic
-# chmod +x usr/share/bottlefs/api/framework/cli/views/webapp/protected/yiic
 
 chmod +x etc/init.d/bottlefs
 chmod +x usr/share/bottlefs/bottlefs.sh
+chmod +x DEBIAN/preinst
+chmod +x DEBIAN/postinst
+chmod +x DEBIAN/prerm
+chmod +x DEBIAN/postrm
 
 find usr -type f | while read f; do md5sum "$f"; done > DEBIAN/md5sums
 find etc -type f | while read f; do md5sum "$f"; done >> DEBIAN/md5sums
+find var -type f | while read f; do md5sum "$f"; done >> DEBIAN/md5sums
 
 cd ..
 
@@ -155,5 +157,6 @@ rm -rf deb-pkg_create
 
 #check
 lintian *.deb > lintian.log
+cat lintian.log
 
 
