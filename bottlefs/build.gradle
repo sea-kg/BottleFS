@@ -82,6 +82,12 @@ files.directory=../bottle1_files
 
 # config for metadata
 metadata.textfields=name,number,author
+
+# permissions
+allow_indexing_localfiles=yes
+allow_store_binary=yes
+allow_store_text=yes
+
 ''')
 		}
 
@@ -103,6 +109,12 @@ files.directory=../bottle2_files
 
 # config for metadata
 metadata.textfields=name,number,author
+
+# permissions
+allow_indexing_localfiles=no
+allow_store_binary=no
+allow_store_text=no
+
 ''')
 		}
 		

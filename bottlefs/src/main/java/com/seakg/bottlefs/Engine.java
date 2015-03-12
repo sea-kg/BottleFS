@@ -55,6 +55,9 @@ import org.apache.lucene.store.*;
 import org.apache.lucene.util.*;
 import org.apache.lucene.util.Version.*;
 
+import org.apache.commons.io.*;
+import org.apache.commons.io.FilenameUtils;
+
 public class Engine implements Runnable {
 		private Properties m_pProps;
 		private Thread t;
@@ -239,6 +242,16 @@ public class Engine implements Runnable {
 							continue;
 						}*/
 						
+						// remove files
+						
+						if (!this.allowStoreBinary()) {
+							f.delete();
+						}
+
+						if (!this.allowStoreText()) {
+							File file_text = new File(file_d, id + ".text");
+							file_text.delete();
+						}
 					}
 				}
 			} catch (InterruptedException e) {
@@ -332,6 +345,18 @@ public class Engine implements Runnable {
 			return m_pProps.getProperty("index.directory");
 		}
 		
+		public boolean allowIndexingLocalFiles() {
+			return m_pProps.getProperty("allow_indexing_localfiles").toString().equals("yes");
+		}
+		
+		public boolean allowStoreBinary() {
+			return m_pProps.getProperty("allow_store_binary").toString().equals("yes");
+		}
+		
+		public boolean allowStoreText() {
+			return m_pProps.getProperty("allow_store_text").toString().equals("yes");
+		}
+
 		public void initDirs() {
 			File dir_files = new File(m_pProps.getProperty("files.directory"));
 			dir_files.mkdirs();
@@ -411,7 +436,7 @@ public class Engine implements Runnable {
 						result.add(docToProps(hitDoc));
 						if (i >= 50) 
 							break;
-					}			
+					}
 				}
 				ireader.close();
 				directory.close();
@@ -429,7 +454,43 @@ public class Engine implements Runnable {
 			return Integer.parseInt(m_pProps.getProperty("port"));
 		}
 		
-		public void sendResponse() {
-			
+		public void sendResponse(HttpExchange t, String response) {
+			try {
+				byte[] b = response.getBytes(Charset.forName("UTF-8"));
+				t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+				t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+				t.getResponseHeaders().set("Content-Length", "" + b.length);
+				t.getResponseHeaders().set("Status", "200");
+				t.sendResponseHeaders(200, b.length);
+				OutputStream os = t.getResponseBody();
+				InputStream is = new ByteArrayInputStream(response.getBytes("UTF-8"));
+				org.apache.commons.io.IOUtils.copy(is,os);
+				os.close();
+			} catch(IOException e) {
+				// todo
+			}
+		}
+		
+		public void sendResponse(HttpExchange t, JSONObject json) {
+			try {
+				String response = json.toString(2);
+				sendResponse(t, response);
+			} catch(JSONException e) {
+				
+			}
+		}
+				
+		public void sendResponseError(HttpExchange t, int code, String message) {
+			try {
+				JSONObject json = new JSONObject();
+				json.put( "result", "fail" );
+				JSONObject error = new JSONObject();
+				error.put("code", code);
+				error.put("message", message);
+				json.put( "error", error );
+				sendResponse(t, json);
+			} catch(JSONException e) {
+				// TODO
+			}
 		}
 }

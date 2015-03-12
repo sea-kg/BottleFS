@@ -35,9 +35,8 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 			JSONObject json = new JSONObject();
 			Map<String,String> mapData = new HashMap<String, String>();
 			Properties props = new Properties();
-			
+
 			try {
-				
 				JSONObject api = new JSONObject();
 				api.put( "method", "upload" );
 				JSONObject input = new JSONObject();
@@ -59,32 +58,32 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 				
 				if (params.containsKey("url")) {
 					String url = params.get("url").toString();
+					boolean bAllow = true;
+					
+					if (!m_engine.allowIndexingLocalFiles()) {
+						try {
+							URL u = new URL(url);
+							if (u.getProtocol().equals("file")) {
+								m_engine.sendResponseError(t, 1003, "Not allow 'file://'");
+							}
+						} catch (Exception e) {
+							m_engine.sendResponseError(t, 1001, e.getMessage());
+							return;
+						}
+						
+					}
 					props.setProperty("url", url);
 					mapData = m_engine.toIndex(props);
 					json.put("data", mapData);
 					json.put( "result", "ok" );
-
 				} else {
-					json.put("result", "fail" );
-					json.put("error", "Not found parameter 'url'");
+					m_engine.sendResponseError(t, 1002, "Not found parameter 'url'");
+					return;					
 				}
-				response = json.toString(2);				
-				
+				m_engine.sendResponse(t, json);
 			} catch (JSONException e) {
 				// TODO
 			}
-			
-			byte[] b = response.getBytes(Charset.forName("UTF-8"));
-			t.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-			t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-			t.getResponseHeaders().set("Content-Length", "" + b.length);
-			t.getResponseHeaders().set("Status", "200");
-			// t.setStatus(200);
-			t.sendResponseHeaders(200, b.length);
-			OutputStream os = t.getResponseBody();
-			InputStream is = new ByteArrayInputStream(response.getBytes("UTF-8"));
-			IOUtils.copy(is,os);
-			os.close();
 		}
 	}
 
