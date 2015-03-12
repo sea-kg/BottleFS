@@ -57,14 +57,13 @@ public class HandlerCreatorUpload implements IHandlerCreator {
 				json.put("api", api);
 				
 				if (params.containsKey("url")) {
-					String url = params.get("url").toString();
-					boolean bAllow = true;
-					
+					String url = params.get("url").toString();				
 					if (!m_engine.allowIndexingLocalFiles()) {
 						try {
 							URL u = new URL(url);
 							if (u.getProtocol().equals("file")) {
 								m_engine.sendResponseError(t, 1003, "Not allow 'file://'");
+								return;
 							}
 						} catch (Exception e) {
 							m_engine.sendResponseError(t, 1001, e.getMessage());
