@@ -1,6 +1,8 @@
 version="0.1.`git rev-list HEAD --count`"
 name="bottlefs"
 
+echo $version > version
+
 # remove old deb package
 find ./ -name *.deb  | while read f; do  rm "$f"; done
 

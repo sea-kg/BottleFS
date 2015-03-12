@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+VERSION=$(wget -q -O- http://repo.sea-kg.com/bottlefs/version)
+
+if [ -f "bottlefs_"$VERSION"_all.deb" ]; then
+	echo "already latest version"
+	exit;
+fi;
+
+find ./ -name *.deb  | while read f; do  rm "$f"; done
+
+wget http://repo.sea-kg.com/bottlefs/"bottlefs_"$VERSION"_all.deb"
+
+sudo dpkg -r bottlefs
+sudo dpkg -i *.deb
